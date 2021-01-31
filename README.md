@@ -16,7 +16,7 @@ redis 仅仅用于存储用户 username / password
 <br/>
 其中，websocket url 为 ws:localhost:8080/ws
 <br/>
-获取在线用户数接口为 http://localhost:8080/session/count
+获取在线用户数接口为 http://localhost:8080/session/page
 
 ###### 前端测试
 可以使用 http://coolaf.com/tool/chattest
