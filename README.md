@@ -1,4 +1,4 @@
-## 基于 springboot websocket 的 demo
+## 基于 springboot websocket 的群聊实现
 
 #### 功能列表
 - 分布式
