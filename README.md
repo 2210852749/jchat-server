@@ -1,4 +1,12 @@
-## 一个简单、基于 springboot 分布式、支持同一帐号多设备登录 websocket 的 demo
+## 基于 springboot websocket 的 demo
+
+#### 功能列表
+- 分布式
+- 同一帐号多设备登录
+- 群聊
+- 多设备
+- 简单鉴权
+- 心跳检查
 
 #### 依赖
 - maven
@@ -49,6 +57,26 @@ sessionService.getSessions()
   .forEach(session -> subPubService.pub(session, textMessage));
 ```
 
+##### [心跳检查](https://github.com/yemingfeng/jchat-server/blob/master/src/main/java/com/jchat/service/impl/HeartbeatServiceImpl.java)
+```java
+// 核心逻辑是一个定时任务，通过延时队列 poll 实现。
+// 其中 HeartbeatSessionTask 封装了 session 和对应的过期时间
+this.executorService.submit(() -> {
+  while (true) {
+    try {
+      HeartbeatSessionTask task;
+      while ((task = queue.poll()) != null) {
+        task.getSession().close();
+        log.warn("[{}] is dead, so close", SessionUtil.getUsernameFromSession(task.session));
+      }
+    } catch (Exception e) {
+      log.error("", e);
+    }
+    Thread.sleep(TimeUnit.SECONDS.toMillis(1));
+  }
+});
+```
+
 #### 使用
 ###### 服务端启动
 启动后，会监听 localhost:8080 端口
@@ -57,14 +85,15 @@ sessionService.getSessions()
 <br/>
 获取在线用户数接口为 http://localhost:8080/session/page
 
-###### 前端测试
-可以使用 http://coolaf.com/tool/chattest
-<br/>
+###### [shell 测试](https://www.npmjs.com/package/wscat)
+使用 wscat 测试
+```
+wscat -c 'ws://localhost:8080/ws?username=aiden&password=123'
+```
+
+###### [前端测试](http://coolaf.com/tool/chattest)
 由于有简单的帐号体系，链接时需要制定 username / password，若 username 不存在，则直接注册成功；否则会判断 username / password 是否匹配
 <br/>
 如 ws://localhost:8080/ws?username=aiden&password=123 才能进行连接
 图示：
 ![](./image1.png)
-<br/>
-<br/>
-![](./image2.png)
