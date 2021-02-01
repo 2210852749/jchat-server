@@ -14,7 +14,7 @@ public interface SessionService {
   /**
    * 移除 session
    */
-  void remove(WebSocketSession session);
+  void remove(WebSocketSession session) throws IOException;
 
   /**
    * 获取所有 session

@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 @Slf4j
@@ -41,7 +42,8 @@ public class SessionServiceImpl implements SessionService {
         subPubService.sub(session);
       } else {
         log.warn("[{}] really online, can not online again", username);
-        session.close(CloseStatus.NORMAL);
+        session.sendMessage(new TextMessage("[System]: you really online, so exit"));
+        session.close(CloseStatus.SERVICE_OVERLOAD);
       }
     }
   }

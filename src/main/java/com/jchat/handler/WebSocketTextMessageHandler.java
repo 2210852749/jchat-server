@@ -37,14 +37,16 @@ public class WebSocketTextMessageHandler extends TextWebSocketHandler {
   @Override
   public void afterConnectionClosed(WebSocketSession session, CloseStatus status)
       throws IOException {
-    sessionService.remove(session);
-    String message = String.format("[%s] 下线啦",
-        SessionUtil.getUsernameFromSession(session));
-    messageService.sendMessageToAll(new TextMessage(message));
+    if (status.getCode() == CloseStatus.SERVICE_OVERLOAD.getCode()) {
+      sessionService.remove(session);
+      String message = String.format("[%s] 下线啦",
+          SessionUtil.getUsernameFromSession(session));
+      messageService.sendMessageToAll(new TextMessage(message));
+    }
   }
 
   @Override
-  public void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException {
+  public void handleTextMessage(WebSocketSession session, TextMessage message) {
     messageService.handle(session, message);
   }
 }
