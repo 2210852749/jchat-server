@@ -46,7 +46,7 @@ public class AuthorizationInterceptor implements HandshakeInterceptor {
       } catch (Exception err) {
         log.error("", err);
       }
-      response.close();
+      return false;
     }
     return true;
   }
