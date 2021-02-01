@@ -58,6 +58,7 @@ public class SubPubServiceImpl implements SubPubService {
   }
 
   private String genSubKey(WebSocketSession session) {
-    return String.format("sub:%s", SessionUtil.getUsernameFromSession(session));
+    return String.format("sub:%s:%s",
+        SessionUtil.getUsernameFromSession(session), session.getId());
   }
 }
