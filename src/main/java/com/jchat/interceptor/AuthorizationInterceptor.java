@@ -1,6 +1,6 @@
 package com.jchat.interceptor;
 
-import static com.jchat.service.impl.SessionServiceImpl.USER;
+import static com.jchat.util.SessionUtil.USER;
 
 import com.jchat.exception.AuthorizationException;
 import com.jchat.model.User;

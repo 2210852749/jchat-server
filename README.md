@@ -1,4 +1,4 @@
-#### 一个简单、基于 springboot websocket 的 demo
+#### 一个简单、基于 springboot 分布式 websocket 的 demo
 
 ##### 依赖
 - maven

@@ -1,8 +1,8 @@
 package com.jchat.controller;
 
-import com.jchat.model.User;
 import com.jchat.response.PageResponse;
 import com.jchat.service.SessionService;
+import com.jchat.util.SessionUtil;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,8 +26,7 @@ public class SessionController {
       @RequestParam(value = "limit", defaultValue = "10", required = false) int limit) {
     List<String> usernames = sessionService.getSessions()
         .stream()
-        .map(sessionService::getUserFromSession)
-        .map(User::getUsername)
+        .map(SessionUtil::getUsernameFromSession)
         .skip(offset)
         .limit(limit)
         .collect(Collectors.toList());

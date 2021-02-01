@@ -2,6 +2,7 @@ package com.jchat.handler;
 
 import com.jchat.service.MessageService;
 import com.jchat.service.SessionService;
+import com.jchat.util.SessionUtil;
 import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +30,7 @@ public class WebSocketTextMessageHandler extends TextWebSocketHandler {
   public void afterConnectionEstablished(WebSocketSession session) throws IOException {
     sessionService.add(session);
     String message = String.format("[%s] 上线啦",
-        sessionService.getUserFromSession(session).getUsername());
+        SessionUtil.getUsernameFromSession(session));
     messageService.sendMessageToAll(new TextMessage(message));
   }
 
@@ -38,7 +39,7 @@ public class WebSocketTextMessageHandler extends TextWebSocketHandler {
       throws IOException {
     sessionService.remove(session);
     String message = String.format("[%s] 下线啦",
-        sessionService.getUserFromSession(session).getUsername());
+        SessionUtil.getUsernameFromSession(session));
     messageService.sendMessageToAll(new TextMessage(message));
   }
 

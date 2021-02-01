@@ -3,15 +3,17 @@ package com.jchat.service.impl;
 import com.jchat.exception.AuthorizationException;
 import com.jchat.model.User;
 import com.jchat.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserServiceImpl implements UserService {
 
-  @Autowired
-  private StringRedisTemplate stringRedisTemplate;
+  private final StringRedisTemplate stringRedisTemplate;
+
+  public UserServiceImpl(StringRedisTemplate stringRedisTemplate) {
+    this.stringRedisTemplate = stringRedisTemplate;
+  }
 
   @Override
   public User register(String username, String password) throws AuthorizationException {
