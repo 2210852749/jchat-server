@@ -1,6 +1,6 @@
 package com.jchat.service.impl;
 
-import com.jchat.service.SubPubService;
+import com.jchat.service.PubSubService;
 import com.jchat.util.SessionUtil;
 import java.io.IOException;
 import java.util.Map;
@@ -16,13 +16,13 @@ import org.springframework.web.socket.WebSocketSession;
 
 @Slf4j
 @Service
-public class SubPubServiceImpl implements SubPubService {
+public class PubSubServiceImpl implements PubSubService {
 
   private final StringRedisTemplate stringRedisTemplate;
   private final Map<WebSocketSession, MessageListener> messageListenerMap;
   private final RedisMessageListenerContainer redisMessageListenerContainer;
 
-  public SubPubServiceImpl(StringRedisTemplate stringRedisTemplate,
+  public PubSubServiceImpl(StringRedisTemplate stringRedisTemplate,
       RedisMessageListenerContainer redisMessageListenerContainer) {
     this.stringRedisTemplate = stringRedisTemplate;
     this.messageListenerMap = new ConcurrentHashMap<>();

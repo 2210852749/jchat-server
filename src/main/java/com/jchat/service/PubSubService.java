@@ -3,7 +3,7 @@ package com.jchat.service;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
-public interface SubPubService {
+public interface PubSubService {
 
   void pub(WebSocketSession session, TextMessage textMessage);
 

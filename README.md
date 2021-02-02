@@ -54,7 +54,7 @@ messageListenerMap.put(session, messageListener);
 ```java
 // 获取所有在线的 session，然后通过 redis pub 功能转发消息
 sessionService.getSessions()
-  .forEach(session -> subPubService.pub(session, textMessage));
+  .forEach(session -> pubSubService.pub(session, textMessage));
 ```
 
 ##### [心跳检查](https://github.com/yemingfeng/jchat-server/blob/master/src/main/java/com/jchat/service/impl/HeartbeatServiceImpl.java)
