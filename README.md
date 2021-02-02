@@ -59,22 +59,35 @@ sessionService.getSessions()
 
 ##### [心跳检查](https://github.com/yemingfeng/jchat-server/blob/master/src/main/java/com/jchat/service/impl/HeartbeatServiceImpl.java)
 ```java
-// 核心逻辑是一个定时任务，通过延时队列 poll 实现。
-// 其中 HeartbeatSessionTask 封装了 session 和对应的过期时间
-this.executorService.submit(() -> {
-  while (true) {
-    try {
-      HeartbeatSessionTask task;
-      while ((task = queue.poll()) != null) {
-        task.getSession().close();
-        log.warn("[{}] is dead, so close", SessionUtil.getUsernameFromSession(task.session));
+// 核心逻辑是使用分桶策略，一共有 10 个桶，每个桶有对应的定时任务和延迟队列
+// 延迟队列使用了 HeartbeatSessionTask， 其中 HeartbeatSessionTask 封装了 session 和对应的过期时间
+
+static final int BUCKET_SIZE = 10;
+
+// 每个 session 进入桶时，会根据 sessionId.hashCode() & BUCKET_SIZE 选择桶
+bucket[Math.abs(session.getId().hashCode() % BUCKET_SIZE)].add(new HeartbeatSessionTask(session));
+
+// 启动每个桶的定时任务
+for (int i = 0; i < BUCKET_SIZE; i++) {
+  bucket[i] = new DelayQueue<>();
+  executors[i] = Executors.newSingleThreadExecutor();
+  int index = i;
+
+  executors[index].submit(() -> {
+    while (true) {
+      try {
+        HeartbeatSessionTask task;
+        while ((task = bucket[index].poll()) != null) {
+          task.getSession().close();
+          log.warn("[{}] is dead, so close", SessionUtil.getUsernameFromSession(task.session));
+        }
+      } catch (Exception e) {
+        log.error("", e);
       }
-    } catch (Exception e) {
-      log.error("", e);
+      Thread.sleep(TimeUnit.SECONDS.toMillis(1));
     }
-    Thread.sleep(TimeUnit.SECONDS.toMillis(1));
-  }
-});
+  });
+}
 ```
 
 #### 使用

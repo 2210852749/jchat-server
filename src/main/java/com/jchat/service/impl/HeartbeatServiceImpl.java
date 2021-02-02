@@ -18,49 +18,67 @@ import org.springframework.web.socket.WebSocketSession;
 @Service
 public class HeartbeatServiceImpl implements HeartbeatService {
 
-  private final ExecutorService executorService;
-  private final DelayQueue<HeartbeatSessionTask> queue;
+  private final ExecutorService[] executors;
+  private final DelayQueue<HeartbeatSessionTask>[] bucket;
 
+  private static final int BUCKET_SIZE = 10;
+
+  @SuppressWarnings("unchecked")
   public HeartbeatServiceImpl() {
-    this.queue = new DelayQueue<>();
-    this.executorService = Executors.newSingleThreadExecutor();
-    this.executorService.submit(() -> {
-      while (true) {
-        try {
-          HeartbeatSessionTask task;
-          while ((task = queue.poll()) != null) {
-            task.getSession().close();
-            log.warn("[{}] is dead, so close", SessionUtil.getUsernameFromSession(task.session));
+    this.bucket = new DelayQueue[BUCKET_SIZE];
+    this.executors = new ExecutorService[BUCKET_SIZE];
+    for (int i = 0; i < BUCKET_SIZE; i++) {
+      bucket[i] = new DelayQueue<>();
+      executors[i] = Executors.newSingleThreadExecutor();
+
+      int index = i;
+
+      executors[index].submit(() -> {
+        while (true) {
+          try {
+            HeartbeatSessionTask task;
+            while ((task = bucket[index].poll()) != null) {
+              // 有可能已经关闭了，则直接跳过
+              if (task.getSession().isOpen()) {
+                task.getSession().close();
+                log.warn("[{}] is dead, so close",
+                    SessionUtil.getUsernameFromSession(task.session));
+              }
+            }
+          } catch (Exception e) {
+            log.error("", e);
           }
-        } catch (Exception e) {
-          log.error("", e);
+          Thread.sleep(TimeUnit.SECONDS.toMillis(1));
         }
-        Thread.sleep(TimeUnit.SECONDS.toMillis(1));
-      }
-    });
+      });
+    }
   }
 
   @Override
   public void add(WebSocketSession session) {
-    queue.add(new HeartbeatSessionTask(session));
+    bucket[getBucket(session)].add(new HeartbeatSessionTask(session));
   }
 
   @Override
   public void remove(WebSocketSession session) {
-    queue.removeIf(task -> task.getSession() == session);
+    bucket[getBucket(session)].removeIf(task -> task.getSession() == session);
   }
 
   @Override
   public void refresh(WebSocketSession session) {
-    queue.removeIf(task -> task.getSession() == session);
-    queue.add(new HeartbeatSessionTask(session));
+    bucket[getBucket(session)].removeIf(task -> task.getSession() == session);
+    bucket[getBucket(session)].add(new HeartbeatSessionTask(session));
+  }
+
+  private int getBucket(WebSocketSession session) {
+    return Math.abs(session.getId().hashCode() % BUCKET_SIZE);
   }
 
   @PreDestroy
   public void onDestroy() throws InterruptedException {
-    if (executorService != null) {
-      executorService.shutdown();
-      executorService.awaitTermination(5, TimeUnit.SECONDS);
+    for (int i = 0; i < BUCKET_SIZE; i++) {
+      executors[i].shutdown();
+      executors[i].awaitTermination(5, TimeUnit.SECONDS);
     }
   }
 
